@@ -12,7 +12,12 @@ public class MyApplet extends JApplet{
     
     public void init(){
 
-        this.mp = new MyPanel();
+        // 画像の読み込み
+        // ダウンロード元：　https://www.pakutaso.com/20120841222post-1818.html
+        URL url = MyApplet.class.getResource("Board.jpg");
+        Image bg = super.getImage(url);
+
+        this.mp = new MyPanel(bg);
 
         this.ta = new JTextArea(30,30);
 
