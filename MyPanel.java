@@ -60,10 +60,10 @@ public class MyPanel extends JPanel implements MouseListener{
     private void drawBoard(Graphics g){
         for(int y=0; y<8; y++){
             for(int x=0; x<8; x++){
-                g.setColor(Color.black);
-                g.drawRect(30+70*x,30+70*y,70,70);
                 g.setColor(this.boardColor);
                 g.fillRect(30+70*x,30+70*y,70,70);
+                g.setColor(Color.black);
+                g.drawRect(30+70*x,30+70*y,70,70);
             }
         }
 
