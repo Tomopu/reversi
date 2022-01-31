@@ -1,10 +1,26 @@
 public class MyModel {
     private int[][] board;
+    private int width, height;
 
     public MyModel(){
         // 空白0, 黒1, 白2, 候補3, 壁4
         this.board = new int[10][10];
+
+        // パネルのサイズ
+        this.height = 620;
+        this.width = 620;
+
         initState();
+    }
+
+    // heightのゲッター
+    public int getHeight(){
+        return this.height;
+    }
+
+    // widthのゲッター
+    public int getWidth(){
+        return this.width;
     }
 
     // boardの要素を取得

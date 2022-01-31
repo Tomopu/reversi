@@ -1,0 +1,124 @@
+@charset "utf-8";
+
+header {
+    /* 背景透かし */
+    background-color: rgba(247,247,247,0.97);;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+
+    /*fixedで上部固定*/
+	position: fixed;
+    /* 最前面へ */
+    z-index: 999; 
+
+    /* レイアウト */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    
+    /* スティッキーヘッダー */
+    /* position: sticky; */
+    top: 0;
+}
+
+/*　上に上がる動き　*/
+#header.UpMove {
+	animation: UpAnime 0.5s forwards;
+}
+@keyframes UpAnime {
+    from {
+        opacity: 1;
+    	transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+    	transform: translateY(-100px);
+    }
+}
+
+/*　下に下がる動き　*/
+#header.DownMove {
+	animation: DownAnime 0.5s forwards;
+}
+@keyframes DownAnime {
+    from {
+    	opacity: 0;
+    	transform: translateY(-100px);
+    }
+    to {
+    	opacity: 1;
+    	transform: translateY(0);
+    }
+}
+
+header a {
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    color: #4b4b4b;
+}
+
+#header_logo {
+    margin: 0 20px;
+    padding: 5px 0;
+    font-size: 20px;
+}
+
+#pc_navi {
+    margin: 0 20px 0 auto;
+}
+
+#pc_navi ul li a {
+    position: relative;
+    font-size: 13px;
+}
+
+header ul {
+    list-style: none;
+    margin: 0;
+    display: flex;
+}
+
+header li {
+    margin: 0 0 0 30px;
+    font-size: 17px;
+}
+
+@media screen and (min-width: 760px) {
+   
+    #header_logo {
+        margin: 0 50px;
+        padding: 10px 0;
+        font-size: 25px;
+    }
+
+    #pc_navi {
+        margin: 0 90px 0 auto;
+    }
+
+    #pc_navi ul li a {
+        font-size: 15px;
+    }
+
+    #pc_navi ul li a::before {
+        content: "";
+        width: 0;
+        height: 1px;
+        background: #4b4b4b;
+        display: block;
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 50%;
+        -webkit-transform: translateX(-50%);
+        transform: translateX(-50%);
+        transition: .3s;
+    }
+    
+    #pc_navi ul li a:hover::before {
+        width: 100%;
+    }
+
+}
+ 
+@media screen and (min-width: 960px) {
+
+}

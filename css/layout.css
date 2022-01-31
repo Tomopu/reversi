@@ -1,0 +1,59 @@
+@charset "utf-8";
+
+/* 見出しのレイアウト */
+.heading {
+    padding: 0.25em 0.5em;
+    color: #494949;
+    background: transparent;
+    border-left: solid 5px #7db4e6;
+    margin-bottom: 20px;
+}
+
+/* 文字の装飾 */
+body a {
+    color: blue;
+}
+
+article {
+    margin-bottom: 70px;
+}
+
+.text_box {
+    margin-top: 40px;
+}
+
+img {
+    max-width: 100%;
+    margin-bottom: 15px;
+    vertical-align: bottom;
+}
+
+#game_screen {
+    width: 500px;
+    margin-bottom: 0;
+}
+
+pre {
+    width: 100%;
+    margin: 15px 0;
+    white-space: pre-wrap;
+    /* overflow: auto; */
+}
+
+code {
+    border-radius: 10px;
+}
+
+/* タブレットよりも小さい画面 */
+@media screen and (max-width: 960px) {
+    
+}
+
+/* スマホよりも小さい画面 */
+@media screen and (max-width: 760px) {
+
+    .heading {
+        font-size: 22px;
+    }
+
+}

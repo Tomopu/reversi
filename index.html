@@ -1,19 +1,152 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/layout.css">
+        <link rel="stylesheet" href="css/header.css">
+        <!-- Google fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;300;400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
         <title>リバーシ</title>
-        <script type="text/css" media="screen">
-            body{
-                height: 1500px;
-            }
-            applet{
-                width: 1000px;
-                height: 700px;
-            }
-        </script>
     </head>
     <body>
-        <h1>リバーシ</h1>
+        <header id="header" class="DownMove">
+            <h1 id="header_logo"><a href="/">　</a></h1>
+            <nav id="pc_navi">
+               <ul>
+                  <li><a href="https://github.com/Tomopu/reversi">Download</a></li>
+               </ul>
+            </nav>
+        </header>
+
+        <div id="main_visual">
+            <div id="main_title">
+                <h2>2021年度 プログラミング言語ⅢB 自由課題</h2>
+            </div>
+         </div>
+
+        <div id="wrapper">
+            <!-- メイン -->
+            <div id="main">
+                <article>
+                    <h1 class="heading">リバーシ</h1>
+                    <img src="img/screenshot-1.png" id="game_screen">
+                </article>
+                <article>
+                    <h1 class="heading">遊び方</h1>
+                    <p>想定プレイ人数: 2人</p>
+                    <p>アプレットが起動したら、石を置きたい場所にカーソルを持っていき、マウスを左クリックしてください。</p>
+                    <p>先手(黒)、後手(白)の順番にマウスを交換して遊んでください。</p>
+                </article>
+                <article>
+                    <h1 class="heading" id="heading-1">1. はじめに</h1>
+                    <p>今回の自由課題制作にあたって、複合融合演習の「ネットワークとセキュリティ」のテーマでサーバー周りの知識が増えたことや、情報工学実験1でもWebSocketについて触れられていたことから、Javaでもサーバーを用いた通信対戦が可能なゲームを作りたいと思い、実装が比較的容易な「リバーシ」を制作することを決めました。<br>しかし、最後の最後でJava側のセキュリティの仕様に弾かれたためアプレットからサーバーに接続できず、管理者権限のある環境下でなけれなどうにもならないことから、最終的にはソロプレイのみを実装して通信対戦は断念するという形になりました。</p>
+                    <p><a href="#heading-4">4. ソケット通信について</a>では、(本来使用するはずだった)通信対戦のベースとなるチャットサーバー(CUI版)をServerSocketとThreadを用いて作成したので、この記事を見て通信対戦の意志を継いでくれるかもしれない"後輩"のために記録を残しておきます。</p>
+                    <p>なお、後程にも記述しますが、今回作成したソースコードは、<a href="https://github.com/Tomopu/reversi">https://github.com/Tomopu/reversi</a>に公開していますので、今後何か作品を作る際に役立てていただければ幸いです。</p>
+                </article>
+                <article>
+                    <h1 class="heading" id="#heading-2">2. プログラムの説明</h1>
+                    <p>今回、リバーシを作成するにあったって苦労したことは、石を置けるかを判断する処理と、石をひっくり返す処理です。</p>
+                    <p>まず、石を置けるかを判断する処理に関しては、盤面に置かれている石のうち、自分の色の石を見つけた場合には以下のような手順で処理します。</p>
+                    <img src="img/screenshot-2.png">
+                    <p>なお、リバーシの盤面が8x8マスなので、盤面を表す配列については外周に壁を設置するように10x10の二次元配列にします。(空白0, 黒1, 白2, 候補3, 壁4)</p>
+                    <p>ゲーム開始時の(盤面)配列の各値</p>
+                    <table>
+                        <tr><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th></th>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>2</th><th>1</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>1</th><th>2</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>0</th><th>4</th></tr>
+                        <tr><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th><th>4</th></tr>
+                    </table>
+                    <p>また、石をひっくり返す処理に関しては、以下のような手順で処理します。ただし、石を置ける場所は上記の処理で限定されているので、必ず一列はひっくり返せることが保証されています。</p>
+                    <img src="img/screenshot-3.png">
+                    <p>また、上記に書かれているスタックとは、以下のようなものを指しています。</p>
+                    <img src="img/screenshot-4.png">
+                    <p>Javaには<a href="https://docs.oracle.com/javase/jp/8/docs/api/java/util/Stack.html">Stack</a>や<a href="https://docs.oracle.com/javase/jp/8/docs/api/java/util/Stack.html">Point</a>などといったクラスが標準で実装されていますが、今回はあえてMyStackやMyPointを一から実装しました。</p>
+                </article>
+                <article>
+                    <h1 class="heading" id="#heading-3">3. Javaアプレットのセキュリティ</h1>
+                    <p><a href="#heading-1">1. はじめに</a>でも書いた通り、当初の予定では、ソケット通信を用いた通信対戦型のリバーシを作成する予定でしたが、実際にサーバーを作成してアプレットから接続しようとすると</p>
+                    <div>
+                        <p>("java.net.SocketPermission" "192.168.X.X:10000" "connect,resolve")<br>java.security.AccessControlException: access denied ("java.net.SocketPermission" "192.168.X.X:10000" "connect,resolve")</p>
+                    </div>
+                    <p>のようなエラーが発生しました。<a href="https://qiita.com/peko_kun/items/7307fd8c138fe3d2ceb4">参考1</a>によると、Java7u51においてDefault Socket Permissionsが変更されたため、アプレットからサーバーに接続する際にセキュリティーの権限周りで弾かれるようです。</p>
+                    <p>解決方法としては、<a href="https://qiita.com/takaakikasai/items/404187233654c5525f04">参考2</a>などにもあるように、(MacOSの場合は)/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/lib/security/java.policyの一部を変更すると良いそうですが、java.policyは管理者以外だとread onlyなので、学校の実験室環境でこの変更をすることが不可能なことに加え、このようなアプレットの仕様に気が付くのが遅すぎたこともあり、今回は通信対戦を断念する形となってしましました。</p>
+                    <p>また、<a href="https://docs.oracle.com/javase/jp/8/docs/api/java/security/Permissions.html">Permissionクラス</a>や<a href="https://docs.oracle.com/javase/jp/8/docs/api/java/net/SocketPermission.html">SocketPermissionクラス</a>などもJavaにはあるそうですが、こちらに関しては私の知識不足もあり、深いところまで理解するこができませんでした。(授業以外の範囲でもJavaの奥深さを思い知らされました...。)<br>もしかしたら、java.policyを変更する以外にもアプレットからサーバーに接続できるようにする方法があるかもしれません。(ただし、セキュリティーレベルが下がってしまうのでその点は注意してください。)</p>
+                    <div class="text_box">
+                        <h2>以下に参考資料を載せておきます。挑戦してみたい方は参考にしてみてください。</h2>
+                        <p>参考1: Java7u51でJavaDB(1527port)が起動しなくなったときの対処</p>
+                        <a href="https://qiita.com/peko_kun/items/7307fd8c138fe3d2ceb4">https://qiita.com/peko_kun/items/7307fd8c138fe3d2ceb4</a>
+                        <p>参考2: OS X(Mac)でJavaをアップデートするとアプレットでSocketPermissionエラーが出る時の対処</p>
+                        <a href="https://qiita.com/takaakikasai/items/404187233654c5525f04">https://qiita.com/takaakikasai/items/404187233654c5525f04</a>
+                        <p>参考3: Java Development Kit (JDK)でのアクセス権</p>
+                        <a href="https://docs.oracle.com/javase/jp/8/docs/technotes/guides/security/permissions.html">https://docs.oracle.com/javase/jp/8/docs/technotes/guides/security/permissions.html</a>
+                        <p>参考4: java.security.AccessControlException: アクセス拒否エラー</p>
+                        <a href="https://docs.oracle.com/cd/E19528-01/820-1614/6nd995fva/index.html">https://docs.oracle.com/cd/E19528-01/820-1614/6nd995fva/index.html</a>
+                        <p>参考5: Permission (Java Platform SE 8 )</p>
+                        <a href="https://docs.oracle.com/javase/jp/8/docs/api/java/security/Permissions.html">https://docs.oracle.com/javase/jp/8/docs/api/java/security/Permissions.html</a>
+                        <p>参考6: SocketPermission (Java Platform SE 8 )</p>
+                        <a href="https://docs.oracle.com/javase/jp/8/docs/api/java/net/SocketPermission.html">https://docs.oracle.com/javase/jp/8/docs/api/java/net/SocketPermission.html</a>
+                    </div>
+                </article>
+                <article>
+                    <h1 class="heading" id="#heading-4">4. ソケット通信について</h1>
+                    <p>この章では、<a href="#heading-1">1. はじめに</a>でも書いた「通信対戦のベースとなるチャットサーバー(CUI版)」について説明をします。</p>
+                    <p>ソースは<a href="https://github.com/Tomopu/ChatServer">https://github.com/Tomopu/ChatServer</a>からダウンロードできますので、何かの参考になれば幸いです。</p>
+                    <h2>使い方</h2>
+                    <p>1. Server.java, ServerThread.java, Client.java, ClientThread.java をコンパイルする</p>
+                    <p>2. Server.classを実行</p>
+                    <p>3. 別ウィンドウで Client.classを実行</p>
+                    <p>4. クライアントの数に応じて別ウィンドウで Client.classを実行</p>
+                    <p>(デフォルトでは、クライアントの最大接続数が2人になっています。変更したい場合は、Server.java内の ACCEPTMAXを任意の値にしてください。)</p>
+                    <div class="text_box">
+                        <h2>以下に参考資料を載せておきます。挑戦してみたい方は参考にしてみてください。</h2>
+                        <p>参考1: CよりJavaが好き: ネットワーク対戦型ゲームその2</p>
+                        <a href="http://fanblogs.jp/sert/archive/3/0">http://fanblogs.jp/sert/archive/3/0</a>
+                        <p>参考2: 5. IPマルチキャスト (2) | TECHSCORE(テックスコア)</p>
+                        <a href="https://www.techscore.com/tech/Java/JavaSE/Network/5-2/">https://www.techscore.com/tech/Java/JavaSE/Network/5-2/</a>
+                        <p>参考3: ネットワーク(4)</p>
+                        <a href="http://www.rsch.tuis.ac.jp/~ohmi/software-basic/network4.html">http://www.rsch.tuis.ac.jp/~ohmi/software-basic/network4.html</a>
+                        <p>参考4: Thread (Java Platform SE 8 )</p>
+                        <a href="https://docs.oracle.com/javase/jp/8/docs/api/java/lang/Thread.html">https://docs.oracle.com/javase/jp/8/docs/api/java/lang/Thread.html</a>
+                        <p>参考5: Javaのスレッド(Thread)を使いこなすコツを、基礎から ...</p>
+                        <a href="https://www.bold.ne.jp/engineer-club/java-thread">https://www.bold.ne.jp/engineer-club/java-thread</a>
+                    </div>
+                </article>
+                <article>
+                    <h1 class="heading" id="#heading-5">5. 反省</h1>
+                    <p>今回の自由課題の制作をと通して、AppletやJavaそのものに対しての理解を深めることができました。</p>
+                    <p>当初予定していた通信対戦の機能は実装できなかったものの、実際にサーバーやスレッドなどに触れてみて、並列処理の面白さやセキュリティの重要性、さらにはJavaの奥深さを知ることができたので、少し背伸びをして挑戦してみて良かったなと思います。</p>
+                    <c>1年間の授業を通しては、C言語では構造体という変数の集合だったものを、Javaではそれに加えてメソッドなどを一体化させたクラスという概念に拡張し、継承や包含を用いることで更なる拡張性を持たせられることを学びました。</c>
+                    <p>また、ガベージコレクションやIndexOutOfBoundsExceptionなど、C言語で問題となるメモリ周りのセキュリティに対してもJavaでは対策がされており、世界的にJavaが広くシェアされている理由が分かった気がします。</p>
+                    <p>今回学んだオブジェクト指向という考え方は、JavaScriptやPythonなど、他のプログラミング言語にも通ずるものなので、今後学習していく際にはJavaを思い出しながら勉強していきたいと思います。</p>
+                </article>
+            </div>
+            <!-- /メイン -->
+
+            <!-- サイドバー -->
+            <aside class="side">
+                <div class="widget">
+                    <p id="side_menu">目次</p>
+                    <ul>
+                        <li><a href="#heading-1">1. はじめに</a></li>
+                        <li><a href="#heading-2">2. プログラムの説明</a></li>
+                        <li><a href="#heading-2">3. Javaアプレットのセキュリティ</a></li>
+                        <li><a href="#heading-2">4. ソケット通信について</a></li>
+                        <li><a href="#heading-2">5. 反省</a></li>
+
+                    </ul>
+                </div>
+            </aside> 
+            <!-- /サイドバー -->
+        </div>
+        
         <applet code="MyApplet.class" archive="p180006.jar" width="1000" height="700"></applet>
     </body>
 </html>

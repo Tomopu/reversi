@@ -2,14 +2,10 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
-import java.security.cert.Extension;
-import java.text.BreakIterator;
-import java.util.*;
+
 
 public class MyPanel extends JPanel implements MouseListener{
 
-    private int width, height;
     private Color boardColor, clearWhite, clearBlack;
     private MyModel data;
     private MyStack stack;
@@ -17,13 +13,7 @@ public class MyPanel extends JPanel implements MouseListener{
     private Image bg;
     private int turn = 0;
 
-    // ゲームモードを選択したかのフラグ
-    private boolean chooseMode = false;
-    // 接続しているクライアントの数
-    private int clientNum = 0;
-    // クライアントスレッド
-    // private ClientThread client;
-    
+    // 敵がパスしたかのフラグ    
     private boolean passFlag = false;
     
     public MyPanel(MyApplet applet, Image bg){
@@ -37,10 +27,6 @@ public class MyPanel extends JPanel implements MouseListener{
         // アプレットを格納
         this.applet = applet;
 
-        // パネルのサイズ
-        this.height = 620;
-        this.width = 620;
-
         // 背景画像の保存
         this.bg = bg;
 
@@ -52,43 +38,13 @@ public class MyPanel extends JPanel implements MouseListener{
 
         // 設定
         super.setBackground(Color.white);
-        super.setPreferredSize(new Dimension(this.width, this.height));
+        super.setPreferredSize(new Dimension(data.getWidth(), data.getHeight()));
 
         // マウスリスナー
         this.addMouseListener(this);
     }
 
-    // ソロプレイ
-    public void soloPlay(){
-        if(this.chooseMode == false){
-            this.chooseMode = true;
-            this.applet.setTextArea("ソロプレイを開始します。");
-        }else{
-            this.applet.setTextArea("すでにゲームモードを選択済みです。");
-        }
-    }
-
-    // マルチプレイ
-    public void multiPlay(String IPaddr, int PORT){
-        // if(this.chooseMode == false){
-        //     this.client = new ClientThread(this, IPaddr, PORT);
-        //     this.client.start();
-        //     this.chooseMode = true;
-        // }else{
-        //     this.applet.setTextArea("すでにゲームモードを選択済みです。");
-        // }
-    }
-
-    // clientNumのゲッター
-    public int getClientNum(){
-        return this.clientNum;
-    }
-
-    // clientNumのセッター
-    public void setClientNum(int clientNum){
-        this.clientNum = clientNum;
-    }
-
+    // ペイントコンポーネント
     public void paintComponent(Graphics g){
         super.paintComponent(g);   
         // 背景が描画
@@ -105,6 +61,7 @@ public class MyPanel extends JPanel implements MouseListener{
 
     // 盤面の描画
     private void drawBoard(Graphics g){
+        // 枠線を描画
         for(int y=0; y<8; y++){
             for(int x=0; x<8; x++){
                 g.setColor(this.boardColor);
@@ -113,8 +70,7 @@ public class MyPanel extends JPanel implements MouseListener{
                 g.drawRect(30+70*x,30+70*y,70,70);
             }
         }
-
-        // 四隅の点
+        // 四隅の点を描画
         g.setColor(Color.black);
         g.fillOval(165, 165, 10, 10);
         g.fillOval(445, 165, 10, 10);
@@ -122,6 +78,7 @@ public class MyPanel extends JPanel implements MouseListener{
         g.fillOval(445, 445, 10, 10);
     }
 
+    // 石の描画
     private void drawStone(Graphics g){
         int stone;
         for(int y=0; y<8; y++){
@@ -143,8 +100,8 @@ public class MyPanel extends JPanel implements MouseListener{
         }
     }
 
-    // 石が置ける場所の確認
-    private void check(int y, int x, int dir, int turn, int flag){
+    public MyPoint dir2Point(int dir, int x, int y){
+        MyPoint point;
         // 方向と座標の対応
         switch(dir){
             case 0: y--;      break;
@@ -156,7 +113,19 @@ public class MyPanel extends JPanel implements MouseListener{
             case 6:      x--; break;
             case 7: y--; x--; break;
         }
-    
+        // 変換した座標をポイントに格納
+        point = new MyPoint(y, x);
+        return point;
+    }
+
+    // 石が置ける場所の確認
+    private void check(int y, int x, int dir, int turn, int flag){
+        // 方向を座標に変換
+        MyPoint d2p = dir2Point(dir, x, y);   
+        // 変換した座標から成分ごとに取得
+        x = d2p.getX();
+        y = d2p.getY();
+        // 方向先のマスの状態を取得
         int state = this.data.getState(y, x);
         int enemy = ((turn+1)%2)+1;
 
@@ -188,46 +157,39 @@ public class MyPanel extends JPanel implements MouseListener{
     // パスするかの確認
     private void checkPass(){
         int place = 0;  // 石が置ける場所の数
-        
+        // 全てのマスを確認
         for(int y=1; y<9; y++){
             for(int x=1; x<9; x++){
                 // 石が置ける場所があれば
                 if(this.data.getState(y, x) == 3) place++;
             }
         }
-
         // 石が置ける場所がない場合の処理
         if(place == 0){
             if(this.passFlag == true){
                 this.applet.setTextArea("両者置ける場所がないためゲームを終了します。");
+                // ゲームの終了
                 endGame();
             }else{
                 //相手のターンにする
                 this.turn = (this.turn+1)%2;
                 this.applet.setTextArea("石を置ける場所がないためパスします。");
+                // 一度パスをしたことを記録
                 this.passFlag = true;
                 repaint();
             }
         }
-
         return;
     }
 
     // 石をひっくり返す処理
     private void turnStone(int y, int x, int dir, int turn){
-
-        // 方向と座標の対応
-        switch(dir){
-            case 0: y--;      break;
-            case 1: y--; x++; break;
-            case 2:      x++; break;
-            case 3: y++; x++; break;
-            case 4: y++;      break;
-            case 5: y++; x--; break;
-            case 6:      x--; break;
-            case 7: y--; x--; break;
-        }
-
+        // 方向を座標に変換
+        MyPoint d2p = dir2Point(dir, x, y);   
+        // 変換した座標から成分ごとに取得
+        x = d2p.getX();
+        y = d2p.getY();
+        // 方向先のマスの状態を取得
         int state = this.data.getState(y, x);
         int enemy = ((turn+1)%2)+1;
         int me = turn+1;
@@ -259,25 +221,27 @@ public class MyPanel extends JPanel implements MouseListener{
         }
     }
 
+    // マウスが押された時の処理
     public void mousePressed(MouseEvent e){
         int x = e.getX();
         int y = e.getY();
-        
-        // ゲームモードを選択しているかの確認
-        if(this.chooseMode == false){
-            this.applet.setTextArea("ゲームモードを先に選択してください。");
-        }else{
-            // クリックされた座標が盤面内であれば
-            if((30 <= x && x <= 590) && (30 <= y && y <= 590)){
-                y = (y-30)/70;
-                x = (x-30)/70;
-                if(this.data.getState(y+1, x+1) == 3){
-                    putStone(y+1, x+1, this.turn);
-                    this.data.clear();
-                    this.turn = (this.turn+1)%2;
+        // クリックされた座標が盤面内であれば
+        if((30 <= x && x <= 590) && (30 <= y && y <= 590)){
+            y = (y-30)/70;
+            x = (x-30)/70;
+            if(this.data.getState(y+1, x+1) == 3){
+                putStone(y+1, x+1, this.turn);
+                this.data.clear();
+                // 相手が置いた場所を通知
+                if(turn == 0){
+                    this.applet.setTextArea("先手(黒): (" + (x+1) + ", " + (y+1) +")に置きました。");
+                }else if(turn == 1){
+                    this.applet.setTextArea("後手(白): (" + (x+1) + ", " + (y+1) +")に置きました。");
                 }
-                repaint();
+                // 相手のターンへ切り替え
+                this.turn = (this.turn+1)%2;
             }
+            repaint();
         }
     }
 
@@ -286,6 +250,7 @@ public class MyPanel extends JPanel implements MouseListener{
         int black = 0;
         int white = 0;
         int stone;
+        // 盤面のコマを数える
         for(int y=1; y<9; y++){
             for(int x=1; x<9; x++){
                 stone = this.data.getState(y, x);
@@ -294,15 +259,16 @@ public class MyPanel extends JPanel implements MouseListener{
             }
         }
         this.applet.setTextArea("[結果] 黒:" + black + ", 白:" + white);
-        if(black > white){
+        // 結果の表示
+        if(black > white){  
             this.applet.setTextArea("黒の勝利です!!");
         }else if(black < white){
             this.applet.setTextArea("白の勝利です!!");
         }else{
             this.applet.setTextArea("引き分けです!!");
         }
+        // 終了メッセージ
         this.applet.setTextArea("終了するにはウィンドウを閉じてください。");
-
     }
 
     public void mouseReleased(MouseEvent e) { } // マウスボタンが離されたとき
